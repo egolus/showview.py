@@ -1,4 +1,3 @@
-<?xml version="1.0" standalone="yes"?>
 <DocumentElement>
   <Show>
     <Name>test1</Name>
@@ -7,8 +6,7 @@
   </Show>
   <Show>
     <Name>test2</Name>
-    <Season>10</Season>
+	<Season>10</Season>
     <Episode>10</Episode>
   </Show>
 </DocumentElement>
-
