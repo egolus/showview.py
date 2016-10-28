@@ -116,12 +116,12 @@ class TestMain(TestCase):
         mock_print.assert_called_with(
             'test1                                     1 -  1')
 
-    # @patch('builtins.print', side_effect=side_effect)
-    # def test_main_with_missing_show(self, mock_print):
-        # """ should return an error string about the missing show """
-        # main()
-        # sys.argv.append('test_missing')
-        # main()
+    @patch('builtins.print', side_effect=side_effect)
+    def test_main_with_missing_show(self, mock_print):
+        """ should return an error string about the missing show """
+        sys.argv.append('test_missing')
+        main()
+        assert(type(mock_print.mock_calls[-1][1][0]) == type(KeyError()))
 
-        # mock_print.assert_called_with(
-            # KeyError("No show found for name 'test_missing'"))
+        self.assertEqual(str(mock_print.mock_calls[-1][1][0]), 
+            str(KeyError("No show found for name 'test_missing'")))
