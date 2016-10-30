@@ -3,8 +3,11 @@ tests for showview
 """
 
 import sys
+import shutil
+import tempfile
 from unittest import TestCase
 from unittest.mock import patch, call
+import xml.etree.ElementTree as ET
 
 from showview import ShowView, main
 
@@ -16,11 +19,36 @@ def side_effect(arg):
     return arg
 
 
-class TestSingleShow(TestCase):
-    """ tests the basic behaviors """
+class SimpleTestCase(TestCase):
+    """
+    this test case opens the xml file directly. Don't write with this test
+    case!
+    """
+    def setUp(self):
+        """ open the xmlfile directly """
+        self.showview = ShowView(TESTXML)
+
+
+class TestCaseWithTempDir(TestCase):
+    """
+    this test case copies the xml file to a tempfolder and cleans up after the
+    tests. So changes to the xml file are fine.
+    """
 
     def setUp(self):
-        self.showview = ShowView(TESTXML)
+        """ copy xml to a tempfolder so we can change it """
+        self.tempfolder = tempfile.mkdtemp()
+        self.tmpxml = shutil.copy(TESTXML, self.tempfolder)
+
+        self.showview = ShowView(self.tmpxml)
+
+    def tearDown(self):
+        """clean up the tempfolder """
+        shutil.rmtree(self.tempfolder)
+
+
+class TestSingleShow(SimpleTestCase):
+    """ tests the basic behaviors """
 
     def test_return_one_show(self):
         """ get one show from the xml file """
@@ -41,11 +69,8 @@ class TestSingleShow(TestCase):
             self.showview.get_show('NotExisting')
 
 
-class TestAllShows(TestCase):
+class TestAllShows(SimpleTestCase):
     """ tests the basic behaviors """
-
-    def setUp(self):
-        self.showview = ShowView(TESTXML)
 
     def test_return_all_shows(self):
         """ get one show from the xml file """
@@ -55,11 +80,8 @@ class TestAllShows(TestCase):
                           {"name": "test2", "season": 10, "episode": 10}])
 
 
-class TestChangeShow(TestCase):
-    """ test the basic behavior to change a show and write to the file """
-
-    def setUp(self):
-        self.showview = ShowView(TESTXML)
+class TestChangeShow(SimpleTestCase):
+    """ test the basic behavior to change a show """
 
     def test_change_episode(self):
         """ get one show and change the episode """
@@ -92,11 +114,33 @@ class TestChangeShow(TestCase):
                          {"name": "test_new", "season": 1, "episode": 1})
 
 
-class TestMain(TestCase):
+class TestWrite(TestCaseWithTempDir):
+    """ test the writing to a file """
+
+    def test_write_xml_file(self):
+        """ do a change and write the xmlfile """
+
+        with open(self.tmpxml, 'r') as file:
+            xml_before = file.readlines()
+
+        show = self.showview.get_show('test1')
+        show['episode'] += 1
+        self.showview.set_show(show)
+        self.showview.write_shows()
+        xml_expected = ET.tostring(self.showview.root).decode()
+        with open(self.tmpxml, 'r') as file:
+            xml_after = ''.join(file.readlines())
+
+        self.assertNotEqual(xml_before, xml_after)
+
+        self.assertEqual(xml_expected, xml_after)
+
+
+class TestMain(TestCaseWithTempDir):
     """ test the main function print statements """
 
     def setUp(self):
-        self.showview = ShowView(TESTXML)
+        super().setUp()
         sys.argv = ['showview.py', '--showfile', TESTXML]
 
     @patch('builtins.print')
@@ -121,7 +165,7 @@ class TestMain(TestCase):
         """ should return an error string about the missing show """
         sys.argv.append('test_missing')
         main()
-        assert(type(mock_print.mock_calls[-1][1][0]) == type(KeyError()))
+        self.assertIsInstance(mock_print.mock_calls[-1][1][0], KeyError)
 
-        self.assertEqual(str(mock_print.mock_calls[-1][1][0]), 
+        self.assertEqual(str(mock_print.mock_calls[-1][1][0]),
             str(KeyError("No show found for name 'test_missing'")))
