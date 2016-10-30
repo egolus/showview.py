@@ -136,7 +136,7 @@ class TestWrite(TestCaseWithTempDir):
         self.assertEqual(xml_expected, xml_after)
 
 
-class TestMain(TestCaseWithTempDir):
+class TestMain(SimpleTestCase):
     """ test the main function print statements """
 
     def setUp(self):
@@ -169,3 +169,102 @@ class TestMain(TestCaseWithTempDir):
 
         self.assertEqual(str(mock_print.mock_calls[-1][1][0]),
             str(KeyError("No show found for name 'test_missing'")))
+
+
+class TestMainWrite(TestCaseWithTempDir):
+    """ test the main functions that change the xml file """
+
+    def setUp(self):
+        super().setUp()
+        sys.argv = ['showview.py', '--showfile', self.tmpxml]
+
+    @patch('builtins.print')
+    def test_main_incEpisode(self, mock_print):
+        """ should increase the episode by 1 """
+        sys.argv.append('test1')
+        main()
+        sys.argv.append('--incepisode')
+        main()
+        expected = [call('test1                                     1 -  1'),
+                    call('test1                                     1 -  2')]
+        self.assertEqual(mock_print.mock_calls, expected)
+
+    @patch('builtins.print')
+    def test_main_incEpisodeShort(self, mock_print):
+        """ should increase the episode by 1 """
+        sys.argv.append('test1')
+        main()
+        sys.argv.append('-ie')
+        main()
+        expected = [call('test1                                     1 -  1'),
+                    call('test1                                     1 -  2')]
+        self.assertEqual(mock_print.mock_calls, expected)
+
+    @patch('builtins.print')
+    def test_main_decEpisode(self, mock_print):
+        """ should increase the episode by 1 """
+        sys.argv.append('test1')
+        main()
+        sys.argv.append('--decepisode')
+        main()
+        expected = [call('test1                                     1 -  1'),
+                    call('test1                                     1 -  0')]
+        self.assertEqual(mock_print.mock_calls, expected)
+
+    @patch('builtins.print')
+    def test_main_decEpisodeShort(self, mock_print):
+        """ should increase the episode by 1 """
+        sys.argv.append('test1')
+        main()
+        sys.argv.append('-de')
+        main()
+        expected = [call('test1                                     1 -  1'),
+                    call('test1                                     1 -  0')]
+        self.assertEqual(mock_print.mock_calls, expected)
+
+    @patch('builtins.print')
+    def test_main_incSeason(self, mock_print):
+        """ should increase the season by 1 """
+        sys.argv.append('test1')
+        main()
+        sys.argv.append('--incseason')
+        main()
+        expected = [call('test1                                     1 -  1'),
+                    call('test1                                     2 -  1')]
+        self.assertEqual(mock_print.mock_calls, expected)
+
+    @patch('builtins.print')
+    def test_main_incSeasonShort(self, mock_print):
+        """ should increase the season by 1 """
+        sys.argv.append('test1')
+        main()
+        sys.argv.append('-is')
+        main()
+        expected = [call('test1                                     1 -  1'),
+                    call('test1                                     2 -  1')]
+        self.assertEqual(mock_print.mock_calls, expected)
+
+    @patch('builtins.print')
+    def test_main_decSeason(self, mock_print):
+        """ should increase the season by 1 """
+        sys.argv.append('test1')
+        main()
+        sys.argv.append('--decseason')
+        main()
+        expected = [call('test1                                     1 -  1'),
+                    call('test1                                     0 -  1')]
+        self.assertEqual(mock_print.mock_calls, expected)
+
+    @patch('builtins.print')
+    def test_main_decSeasonShort(self, mock_print):
+        """ should increase the season by 1 """
+        sys.argv.append('test1')
+        main()
+        sys.argv.append('-ds')
+        main()
+        expected = [call('test1                                     1 -  1'),
+                    call('test1                                     0 -  1')]
+        self.assertEqual(mock_print.mock_calls, expected)
+
+
+
