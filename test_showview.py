@@ -113,6 +113,22 @@ class TestChangeShow(SimpleTestCase):
         self.assertEqual(self.showview.get_show('test_new'),
                          {"name": "test_new", "season": 1, "episode": 1})
 
+class TestInsertShow(SimpleTestCase):
+    """ test the insert function """
+
+    def test_insert_show(self):
+        """ insert a new show """
+
+        shows = list(self.showview.get_shows())
+        show = self.showview.add_show(name='test0')
+        shows.append(show)
+        shows.sort(key=lambda x: x["name"])
+        print(shows)
+        shows_new = list(self.showview.get_shows())
+        print(shows_new)
+        print(ET.tostring(self.showview.root))
+        self.assertEqual(shows, shows_new)
+
 
 class TestWrite(TestCaseWithTempDir):
     """ test the writing to a file """
@@ -266,5 +282,50 @@ class TestMainWrite(TestCaseWithTempDir):
                     call('test1                                     0 -  1')]
         self.assertEqual(mock_print.mock_calls, expected)
 
+    @patch('builtins.print')
+    def test_main_setEpisode(self, mock_print):
+        """ should increase the episode by 1 """
+        sys.argv.append('test1')
+        main()
+        sys.argv.append('--setepisode')
+        sys.argv.append('10')
+        main()
+        expected = [call('test1                                     1 -  1'),
+                    call('test1                                     1 - 10')]
+        self.assertEqual(mock_print.mock_calls, expected)
 
+    @patch('builtins.print')
+    def test_main_setEpisodeShort(self, mock_print):
+        """ should increase the episode by 1 """
+        sys.argv.append('test1')
+        main()
+        sys.argv.append('-se')
+        sys.argv.append('10')
+        main()
+        expected = [call('test1                                     1 -  1'),
+                    call('test1                                     1 - 10')]
+        self.assertEqual(mock_print.mock_calls, expected)
 
+    @patch('builtins.print')
+    def test_main_setSeason(self, mock_print):
+        """ should increase the season by 1 """
+        sys.argv.append('test1')
+        main()
+        sys.argv.append('--setseason')
+        sys.argv.append('10')
+        main()
+        expected = [call('test1                                     1 -  1'),
+                    call('test1                                    10 -  1')]
+        self.assertEqual(mock_print.mock_calls, expected)
+
+    @patch('builtins.print')
+    def test_main_setSeasonShort(self, mock_print):
+        """ should increase the season by 1 """
+        sys.argv.append('test1')
+        main()
+        sys.argv.append('-ss')
+        sys.argv.append('10')
+        main()
+        expected = [call('test1                                     1 -  1'),
+                    call('test1                                    10 -  1')]
+        self.assertEqual(mock_print.mock_calls, expected)
