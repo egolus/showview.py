@@ -42,20 +42,21 @@ class ShowView():
         self.tree = ET.parse(sourcefile)
         self.root = self.tree.getroot()
 
-    def get_shows(self):
+    def get_shows(self, name=None):
         """ returns all shows """
 
         for show in self.root.findall('Show'):
-            yield {"name": show.find('Name').text,
-                   "season": int(show.find('Season').text),
-                   "episode": int(show.find('Episode').text)}
+            if (not name) or (show.find('Name').text.startswith(name)):
+                yield {"name": show.find('Name').text,
+                       "season": int(show.find('Season').text),
+                       "episode": int(show.find('Episode').text)}
 
     def get_show(self, name):
         """ returns one show found by its name """
 
         show = None
         for _show in self.root.findall('Show'):
-            if _show.find('Name').text == name:
+            if _show.find('Name').text.startswith(name):
                 show = _show
                 break
         else:
@@ -151,6 +152,9 @@ def main():
     """ this function gets called from the commandline """
 
     ap = argparse.ArgumentParser()
+    ap.add_argument('-n', '--name',
+                    action='store_true',
+                    help='return the name(s) of the show(s) and exit')
     ap.add_argument('-ie', '--incepisode',
                     action='store_true',
                     help='increase the episode by one')
@@ -187,7 +191,13 @@ def main():
     showview = ShowView(args.showfile)
 
     try:
+        if args.name:
+            for show in showview.get_shows(args.show):
+                print(show["name"])
+            return
+
         if args.show:
+
             if args.addshow:
                 show=showview.add_show(name=args.show)
                 showview.write_shows()
@@ -218,6 +228,7 @@ def main():
                 show['season'] -= 1
                 showview.set_show(show)
                 showview.write_shows()
+
             print("{:40} {:2} - {:2}".format(show["name"],
                                              show["season"],
                                              show["episode"]))
