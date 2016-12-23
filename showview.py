@@ -122,13 +122,13 @@ class ShowView():
         if not show:
             show = dict()
 
-        if name:
+        if name is not None:
             show['name'] = name
-        if season:
+        if season is not None:
             show['season'] = season
-        if episode:
+        if episode is not None:
             show['episode'] = episode
-        if new_name:
+        if new_name is not None:
             show['new_name'] = new_name
 
         for _show in self.root.findall('Show'):
@@ -169,12 +169,10 @@ def main():
                     help='increase the season by one')
     ap.add_argument('-se', '--setepisode',
                     help='set the new episode value',
-                    metavar='INTEGER',
-                    type=int)
+                    metavar='INTEGER')
     ap.add_argument('-ss', '--setseason',
                     help='set the new season value',
-                    metavar='INTEGER',
-                    type=int)
+                    metavar='INTEGER')
     ap.add_argument('-as', '--addshow',
                     action='store_true',
                     help='add a new show with '
@@ -199,7 +197,7 @@ def main():
         if args.show:
 
             if args.addshow:
-                show=showview.add_show(name=args.show)
+                show = showview.add_show(name=args.show)
                 showview.write_shows()
             else:
                 show = showview.get_show(args.show)
